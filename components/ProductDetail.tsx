@@ -14,7 +14,7 @@ import { RelatedProductCard } from './RelatedProductCard';
 interface ProductDetailProps {
   item: MenuItem;
   onBack: () => void;
-  onAddToCart: () => void;
+  onAddToCart: (itemName: string) => void;
   relatedItems: MenuItem[];
 }
 
@@ -82,7 +82,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ item, onBack, onAd
         </div>
         
         <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm border-t p-4 flex space-x-3">
-            <button onClick={onAddToCart} className="flex-1 flex items-center justify-center p-3 border-2 border-violet-500 text-violet-600 font-bold rounded-xl hover:bg-violet-50 transition-colors">
+            <button onClick={() => onAddToCart(item.name)} className="flex-1 flex items-center justify-center p-3 border-2 border-violet-500 text-violet-600 font-bold rounded-xl hover:bg-violet-50 transition-colors">
                 <CartPlusIcon className="w-6 h-6 mr-2" />
                 Add to Cart
             </button>

@@ -1,9 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Header } from './components/Header';
 import { CategoryFilters } from './components/CategoryFilters';
 import { MenuList } from './components/MenuList';
 import { ProductDetail } from './components/ProductDetail';
+import { Toast } from './components/Toast';
 import { menuData, filterCategories } from './constants';
 import type { MenuCategory, MenuItem } from './types';
 
@@ -13,6 +14,9 @@ const App: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
+  const [isToastVisible, setIsToastVisible] = useState<boolean>(false);
+  const toastTimeoutRef = useRef<number | null>(null);
 
   const filteredMenu = useMemo<MenuCategory[]>(() => {
     // Search takes precedence
@@ -50,8 +54,18 @@ const App: React.FC = () => {
 
   }, [activeCategory, searchQuery]);
   
-  const handleAddToCart = () => {
+  const handleAddToCart = (itemName: string) => {
     setCartCount(prev => prev + 1);
+    setToastMessage(`${itemName} added to cart!`);
+    setIsToastVisible(true);
+
+    if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+    }
+
+    toastTimeoutRef.current = window.setTimeout(() => {
+        setIsToastVisible(false);
+    }, 3000);
   };
 
   const handleSelectItem = (item: MenuItem) => {
@@ -103,6 +117,7 @@ const App: React.FC = () => {
           </>
         )}
       </main>
+      <Toast message={toastMessage} isVisible={isToastVisible} />
     </div>
   );
 };
