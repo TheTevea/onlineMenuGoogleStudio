@@ -2,6 +2,7 @@
 import type { MenuCategory } from './types';
 
 export const filterCategories: string[] = [
+  'All',
   'Main Course',
   'Snacks',
   'Salad and Seafood',

@@ -11,35 +11,44 @@ const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>(filterCategories[0]);
   const [cartCount, setCartCount] = useState<number>(1);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
 
   const filteredMenu = useMemo<MenuCategory[]>(() => {
+    // Search takes precedence
+    if (searchQuery.trim() !== '') {
+      const lowercasedQuery = searchQuery.trim().toLowerCase();
+      return menuData
+        .map(category => {
+          const filteredItems = category.items.filter(item =>
+            item.name.toLowerCase().includes(lowercasedQuery) ||
+            item.description.toLowerCase().includes(lowercasedQuery)
+          );
+          return { ...category, items: filteredItems };
+        })
+        .filter(category => category.items.length > 0);
+    }
+
+    // Category filtering logic
     if (activeCategory === 'All') {
       return menuData;
     }
     
-    const newMenuData = menuData.map(categorySection => {
-      const filteredItems = categorySection.items.filter(item => {
-          if (activeCategory === 'Main Course' && (item.category === 'Main Course' || item.category === 'Khmer Food' || item.category === 'Food')) return true;
+    return menuData
+      .map(section => {
+        const filteredItems = section.items.filter(item => {
+          // Special case for "Main Course" filter to include related categories
+          if (activeCategory === 'Main Course') {
+            return ['Main Course', 'Khmer Food', 'Food'].includes(item.category);
+          }
+          // Default case: direct category match
           return item.category === activeCategory;
-      });
-      return { ...categorySection, items: filteredItems };
-    }).filter(categorySection => categorySection.items.length > 0);
-
-    const directMatch = menuData.find(cat => cat.title === activeCategory);
-    if(directMatch) return [directMatch];
-    
-    if(newMenuData.length > 0) return newMenuData;
-
-    const fallbackFiltered = menuData
-      .map(section => ({
-        ...section,
-        items: section.items.filter(item => item.category === activeCategory),
-      }))
+        });
+        return { ...section, items: filteredItems };
+      })
       .filter(section => section.items.length > 0);
-      
-    return fallbackFiltered.length > 0 ? fallbackFiltered : menuData;
 
-  }, [activeCategory]);
+  }, [activeCategory, searchQuery]);
   
   const handleAddToCart = () => {
     setCartCount(prev => prev + 1);
@@ -82,6 +91,10 @@ const App: React.FC = () => {
                   categories={filterCategories} 
                   activeCategory={activeCategory} 
                   setActiveCategory={setActiveCategory} 
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  isSearchVisible={isSearchVisible}
+                  setIsSearchVisible={setIsSearchVisible}
                 />
             </div>
             <div className="p-4 md:p-6">
