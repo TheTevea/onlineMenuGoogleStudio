@@ -1,21 +1,27 @@
-
 import React, { useState, useMemo, useRef } from 'react';
 import { Header } from './components/Header';
 import { CategoryFilters } from './components/CategoryFilters';
 import { MenuList } from './components/MenuList';
 import { ProductDetail } from './components/ProductDetail';
 import { Toast } from './components/Toast';
+import { CartPage } from './components/CartPage';
+import { CheckoutPage } from './components/CheckoutPage';
+import { LocationModal } from './components/LocationModal';
 import { menuData, filterCategories } from './constants';
-import type { MenuCategory, MenuItem } from './types';
+import type { MenuCategory, MenuItem, CartItem } from './types';
 
 const App: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>(filterCategories[0]);
-  const [cartCount, setCartCount] = useState<number>(1);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isToastVisible, setIsToastVisible] = useState<boolean>(false);
+  const [isCartVisible, setIsCartVisible] = useState<boolean>(false);
+  const [isCheckoutVisible, setIsCheckoutVisible] = useState<boolean>(false);
+  const [isLocationModalVisible, setIsLocationModalVisible] = useState<boolean>(false);
+  const [deliveryAddress, setDeliveryAddress] = useState<string | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
 
   const filteredMenu = useMemo<MenuCategory[]>(() => {
@@ -54,9 +60,19 @@ const App: React.FC = () => {
 
   }, [activeCategory, searchQuery]);
   
-  const handleAddToCart = (itemName: string) => {
-    setCartCount(prev => prev + 1);
-    setToastMessage(`${itemName} added to cart!`);
+  const handleAddToCart = (item: MenuItem) => {
+    setCart(prevCart => {
+      const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
+      if (existingItem) {
+        return prevCart.map(cartItem =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
+        );
+      }
+      return [...prevCart, { ...item, quantity: 1 }];
+    });
+    setToastMessage(`${item.name} added to cart!`);
     setIsToastVisible(true);
 
     if (toastTimeoutRef.current) {
@@ -68,14 +84,52 @@ const App: React.FC = () => {
     }, 3000);
   };
 
-  const handleSelectItem = (item: MenuItem) => {
+  const handleUpdateQuantity = (itemId: string, quantity: number) => {
+    setCart(prevCart => {
+        if (quantity <= 0) {
+            return prevCart.filter(item => item.id !== itemId);
+        }
+        return prevCart.map(item =>
+            item.id === itemId ? { ...item, quantity } : item
+        );
+    });
+  };
+
+  const handleRemoveItem = (itemId: string) => {
+      setCart(prevCart => prevCart.filter(item => item.id !== itemId));
+  };
+
+  const handleBuyNow = (item: MenuItem) => {
     setSelectedItem(item);
+    setIsCartVisible(false);
+    setIsCheckoutVisible(true);
     window.scrollTo(0, 0);
   };
 
-  const handleBack = () => {
-    setSelectedItem(null);
+  const handleSaveAddress = (address: string) => {
+    setDeliveryAddress(address);
+    setIsLocationModalVisible(false);
   };
+
+  const showMenu = () => {
+    setSelectedItem(null);
+    setIsCartVisible(false);
+    setIsCheckoutVisible(false);
+  };
+
+  const showCart = () => {
+      setSelectedItem(null);
+      setIsCheckoutVisible(false);
+      setIsCartVisible(true);
+  };
+
+  const showProduct = (item: MenuItem) => {
+      setSelectedItem(item);
+      setIsCartVisible(false);
+      setIsCheckoutVisible(false);
+      window.scrollTo(0, 0);
+  };
+
 
   const relatedItems = useMemo(() => {
     if (!selectedItem) return [];
@@ -86,20 +140,36 @@ const App: React.FC = () => {
       .slice(0, 4); // Show up to 4 related items
   }, [selectedItem]);
 
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+
   return (
     <div className="bg-slate-50 min-h-screen">
       <main className="max-w-5xl mx-auto">
-        {!selectedItem && <Header cartCount={cartCount} />}
-        
-        {selectedItem ? (
+        {isCartVisible ? (
+          <CartPage 
+            onClose={showMenu}
+            cartItems={cart}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemoveItem={handleRemoveItem}
+          />
+        ) : isCheckoutVisible && selectedItem ? (
+          <CheckoutPage
+            item={selectedItem}
+            onBack={() => showProduct(selectedItem)}
+            onAddAddressClick={() => setIsLocationModalVisible(true)}
+            deliveryAddress={deliveryAddress}
+          />
+        ) : selectedItem ? (
           <ProductDetail 
             item={selectedItem} 
-            onBack={handleBack}
+            onBack={showMenu}
             onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
             relatedItems={relatedItems}
           />
         ) : (
           <>
+            <Header cartCount={cartCount} onCartClick={showCart} />
             <div className="sticky top-0 z-20 bg-slate-50/80 backdrop-blur-lg px-4 md:px-0 py-3">
                 <CategoryFilters 
                   categories={filterCategories} 
@@ -112,12 +182,17 @@ const App: React.FC = () => {
                 />
             </div>
             <div className="p-4 md:p-6">
-              <MenuList menuCategories={filteredMenu} onItemSelect={handleSelectItem} />
+              <MenuList menuCategories={filteredMenu} onItemSelect={showProduct} />
             </div>
           </>
         )}
       </main>
       <Toast message={toastMessage} isVisible={isToastVisible} />
+      <LocationModal 
+        isVisible={isLocationModalVisible} 
+        onClose={() => setIsLocationModalVisible(false)} 
+        onSave={handleSaveAddress}
+      />
     </div>
   );
 };

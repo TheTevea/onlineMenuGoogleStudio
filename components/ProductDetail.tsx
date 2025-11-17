@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import type { MenuItem } from '../types';
 import { ChevronLeftIcon } from './icons/ChevronLeftIcon';
@@ -14,11 +13,12 @@ import { RelatedProductCard } from './RelatedProductCard';
 interface ProductDetailProps {
   item: MenuItem;
   onBack: () => void;
-  onAddToCart: (itemName: string) => void;
+  onAddToCart: (item: MenuItem) => void;
+  onBuyNow: (item: MenuItem) => void;
   relatedItems: MenuItem[];
 }
 
-export const ProductDetail: React.FC<ProductDetailProps> = ({ item, onBack, onAddToCart, relatedItems }) => {
+export const ProductDetail: React.FC<ProductDetailProps> = ({ item, onBack, onAddToCart, onBuyNow, relatedItems }) => {
   const [mainImage, setMainImage] = useState(item.images[0]);
   
   return (
@@ -82,11 +82,11 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ item, onBack, onAd
         </div>
         
         <div className="sticky bottom-0 bg-white/90 backdrop-blur-sm border-t p-4 flex space-x-3">
-            <button onClick={() => onAddToCart(item.name)} className="flex-1 flex items-center justify-center p-3 border-2 border-violet-500 text-violet-600 font-bold rounded-xl hover:bg-violet-50 transition-colors">
+            <button onClick={() => onAddToCart(item)} className="flex-1 flex items-center justify-center p-3 border-2 border-violet-500 text-violet-600 font-bold rounded-xl hover:bg-violet-50 transition-colors">
                 <CartPlusIcon className="w-6 h-6 mr-2" />
                 Add to Cart
             </button>
-            <button className="flex-1 flex items-center justify-center p-3 bg-violet-600 text-white font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-lg">
+            <button onClick={() => onBuyNow(item)} className="flex-1 flex items-center justify-center p-3 bg-violet-600 text-white font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-lg">
                 <WalletIcon className="w-6 h-6 mr-2" />
                 Buy Now
             </button>

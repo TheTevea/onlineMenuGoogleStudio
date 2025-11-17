@@ -1,4 +1,3 @@
-
 export interface MenuItem {
   id: string;
   name: string;
@@ -14,4 +13,8 @@ export interface MenuItem {
 export interface MenuCategory {
   title: string;
   items: MenuItem[];
+}
+
+export interface CartItem extends MenuItem {
+  quantity: number;
 }

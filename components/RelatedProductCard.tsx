@@ -1,11 +1,10 @@
-
 import React from 'react';
 import type { MenuItem } from '../types';
 import { PlusIcon } from './icons/PlusIcon';
 
 interface RelatedProductCardProps {
     item: MenuItem;
-    onAddToCart: (itemName: string) => void;
+    onAddToCart: (item: MenuItem) => void;
 }
 
 export const RelatedProductCard: React.FC<RelatedProductCardProps> = ({ item, onAddToCart }) => {
@@ -30,7 +29,7 @@ export const RelatedProductCard: React.FC<RelatedProductCardProps> = ({ item, on
             <button 
                 onClick={(e) => {
                     e.stopPropagation();
-                    onAddToCart(item.name);
+                    onAddToCart(item);
                 }}
                 className="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white/80 rounded-full text-violet-600 opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300 hover:bg-white"
                 aria-label={`Add ${item.name} to cart`}

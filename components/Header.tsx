@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BurgerIcon } from './icons/BurgerIcon';
 import { PhoneIcon } from './icons/PhoneIcon';
@@ -11,13 +10,18 @@ import { UserIcon } from './icons/UserIcon';
 
 interface HeaderProps {
     cartCount: number;
+    onCartClick: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ cartCount }) => {
+export const Header: React.FC<HeaderProps> = ({ cartCount, onCartClick }) => {
   return (
     <header className="relative">
       <div className="absolute top-4 right-4 flex items-center space-x-3 z-10">
-        <button className="relative p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-md hover:bg-white transition-colors">
+        <button 
+          onClick={onCartClick}
+          className="relative p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-md hover:bg-white transition-colors"
+          aria-label={`View cart with ${cartCount} items`}
+        >
           <CartIcon />
           {cartCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
